@@ -11,9 +11,7 @@
   <body>
     <div class="container">
       <div class="topbar">
-        <button id="logoutBtn" class="logout-btn">
-  Logout
-</button>
+        <button id="logoutBtn" class="logout-btn">Logout</button>
 
         <div
           style="
@@ -289,6 +287,44 @@
         }
       }
 
+      // ================================
+      // IMAGE RESIZE BEFORE UPLOAD
+      // ================================
+      async function resizeImage(file, maxWidth = 300, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          const img = new Image();
+
+          reader.onload = (e) => (img.src = e.target.result);
+          reader.onerror = reject;
+
+          img.onload = () => {
+            const scale = Math.min(1, maxWidth / img.width);
+            const width = Math.round(img.width * scale);
+            const height = Math.round(img.height * scale);
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) return reject(new Error("Image resize failed"));
+                resolve(blob);
+              },
+              "image/jpeg",
+              quality,
+            );
+          };
+
+          img.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
       // ADD
       addBtn.onclick = async () => {
         try {
@@ -298,8 +334,23 @@
           setLoading(true, "Uploading image...");
           showStatus("Uploading image…");
 
-          const file = imageEl.files[0];
-          const path = `items/${Date.now()}-${file.name}`;
+          const originalFile = imageEl.files[0];
+
+          // 🔥 Resize + compress BEFORE upload
+          showStatus("Optimizing image…");
+          const resizedBlob = await resizeImage(originalFile, 300, 0.8);
+
+          // Create a clean, compressed file
+          const file = new File([resizedBlob], "menu.jpg", {
+            type: "image/jpeg",
+          });
+
+          // Professional filename
+          const safeName = nameEl.value
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "-");
+
+          const path = `items/${safeName}-${Date.now()}.jpg`;
 
           const upload = await supabase.storage
             .from("menu-images")
