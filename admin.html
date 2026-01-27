@@ -5,207 +5,40 @@
     <title>Menu Admin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <style>
-      :root {
-        --bg: #f7f8fa;
-        --card: #ffffff;
-        --primary: #111827;
-        --muted: #6b7280;
-        --border: #e5e7eb;
-        --accent: #2563eb;
-        --danger: #dc2626;
-        --success: #16a34a;
-        --radius: 14px;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        font-family: Inter, system-ui, sans-serif;
-        background: var(--bg);
-        color: var(--primary);
-      }
-
-      .container {
-        max-width: 760px;
-        margin: 40px auto;
-        padding: 0 16px;
-      }
-
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-      }
-
-      .card {
-        background: var(--card);
-        border-radius: var(--radius);
-        padding: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-      }
-
-      h1 {
-        font-size: 26px;
-        margin: 0;
-      }
-      h2 {
-        font-size: 18px;
-        margin-bottom: 12px;
-      }
-      p {
-        font-size: 14px;
-        color: var(--muted);
-      }
-
-      input,
-      textarea,
-      button {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        font-size: 14px;
-      }
-
-      textarea {
-        resize: vertical;
-        min-height: 80px;
-      }
-
-      input:focus,
-      textarea:focus {
-        outline: none;
-        border-color: var(--accent);
-      }
-
-      button {
-        border: none;
-        cursor: pointer;
-        font-weight: 500;
-        background: var(--accent);
-        color: white;
-        transition:
-          opacity 0.2s,
-          transform 0.1s;
-      }
-
-      button:active {
-        transform: scale(0.98);
-      }
-
-      button.secondary {
-        background: transparent;
-        border: 1px solid var(--border);
-        color: var(--muted);
-      }
-
-      button.danger {
-        background: var(--danger);
-      }
-
-      button:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .row {
-        display: grid;
-        gap: 12px;
-      }
-
-      .row-2 {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .status {
-        padding: 12px;
-        border-radius: 10px;
-        margin-bottom: 16px;
-        font-size: 14px;
-      }
-
-      .status.ok {
-        background: #ecfdf5;
-        color: var(--success);
-      }
-
-      .status.err {
-        background: #fef2f2;
-        color: var(--danger);
-      }
-
-      /* ITEMS */
-      .item {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 14px 0;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .item:last-child {
-        border-bottom: none;
-      }
-
-      .item img {
-        width: 56px;
-        height: 56px;
-        object-fit: cover;
-        border-radius: 12px;
-      }
-
-      .item-info {
-        flex: 1;
-      }
-
-      .item-info strong {
-        display: block;
-      }
-
-      .item-info .price,
-      .item-info .desc {
-        font-size: 13px;
-        color: var(--muted);
-      }
-
-      /* LOADING */
-      .loading {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid #d1d5db;
-        border-top-color: var(--accent);
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style/admin.css" />
   </head>
 
   <body>
     <div class="container">
       <div class="topbar">
-        <div>
-          <h1>Menu Admin</h1>
+        <button
+          style="
+            width: fit-content;
+            font-weight: 400;
+            align-self: flex-end;
+            display: none;
+          "
+          id="logoutBtn"
+          class="secondary"
+        >
+          Logout
+        </button>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+          "
+        >
+          <img
+            src="https://prteyzbjjzkfyogphwrg.supabase.co/storage/v1/object/public/menu-images/logo/maxbunny.jpg"
+            alt="max and bunny logo"
+            style="border-radius: 1000px"
+          />
+          <h1>Admin</h1>
           <p>Manage your restaurant menu</p>
         </div>
-        <button id="logoutBtn" class="secondary">Logout</button>
       </div>
 
       <div id="status"></div>
@@ -228,6 +61,7 @@
             <input id="name" placeholder="Item name" />
             <input id="price" type="number" placeholder="Price (₱)" />
           </div>
+          <div style="width: 100%; height: 14px"></div>
           <div class="row">
             <textarea
               id="description"
@@ -280,12 +114,38 @@
           : "Add Item";
       }
 
+      supabase.auth.onAuthStateChange((_event, session) => {
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (session) {
+          logoutBtn.style.display = "inline-flex";
+          loginBox.style.display = "none";
+          adminBox.style.display = "block";
+          loadItems();
+        } else {
+          logoutBtn.style.display = "none";
+          loginBox.style.display = "block";
+          adminBox.style.display = "none";
+        }
+      });
+
       // AUTH
       async function checkSession() {
         const { data } = await supabase.auth.getSession();
-        loginBox.style.display = data.session ? "none" : "block";
-        adminBox.style.display = data.session ? "block" : "none";
-        if (data.session) loadItems();
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        if (data.session) {
+          // Logged in
+          logoutBtn.style.display = "inline-flex";
+          loginBox.style.display = "none";
+          adminBox.style.display = "block";
+          loadItems();
+        } else {
+          // Logged out
+          logoutBtn.style.display = "none";
+          loginBox.style.display = "block";
+          adminBox.style.display = "none";
+        }
       }
 
       document.getElementById("loginBtn").onclick = async () => {
