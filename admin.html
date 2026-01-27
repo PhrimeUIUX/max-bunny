@@ -45,7 +45,7 @@
 
       <!-- LOGIN -->
       <div id="loginBox" class="card">
-        <h2>Admin Login</h2>
+        <h2>Login</h2>
         <div class="row">
           <input id="email" placeholder="Email" />
           <input id="password" type="password" placeholder="Password" />
@@ -79,6 +79,17 @@
       </div>
     </div>
 
+    <div id="confirmModal" class="confirm-backdrop">
+      <div class="confirm-card">
+        <h3>Delete item?</h3>
+        <p>This action cannot be undone.</p>
+        <div class="confirm-actions">
+          <button id="cancelDelete" class="secondary">Cancel</button>
+          <button id="confirmDelete" class="danger">Delete</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -102,9 +113,17 @@
       const imageEl = document.getElementById("image");
       const itemsEl = document.getElementById("items");
 
-      function showStatus(msg, ok = true) {
-        statusBox.className = `status ${ok ? "ok" : "err"}`;
+      let statusTimeout;
+
+      function showStatus(msg, ok = true, duration = 3000) {
+        if (statusTimeout) clearTimeout(statusTimeout);
+
         statusBox.innerHTML = msg;
+        statusBox.className = `status ${ok ? "ok" : "err"} show`;
+
+        statusTimeout = setTimeout(() => {
+          statusBox.classList.remove("show");
+        }, duration);
       }
 
       function setLoading(isLoading, text = "Processing...") {
@@ -186,45 +205,72 @@
           .join("");
       }
 
-      window.deleteItem = async (id) => {
-        if (!confirm("Delete item? This cannot be undone.")) return;
+      // ================================
+// DELETE ITEM (GLASS CONFIRM)
+// ================================
 
-        try {
-          showStatus("Deleting item…");
+let pendingDeleteId = null;
 
-          // 1. Fetch item first
-          const { data: item, error: fetchError } = await supabase
-            .from("menu_items")
-            .select("image_path")
-            .eq("id", id)
-            .single();
+// Called when user clicks Delete button
+window.deleteItem = (id) => {
+  pendingDeleteId = id;
+  document.getElementById("confirmModal").classList.add("show");
+};
 
-          if (fetchError) throw fetchError;
+// Cancel delete
+document.getElementById("cancelDelete").onclick = () => {
+  pendingDeleteId = null;
+  document.getElementById("confirmModal").classList.remove("show");
+};
 
-          // 2. Delete image from storage (if exists)
-          if (item.image_path) {
-            const { error: storageError } = await supabase.storage
-              .from("menu-images")
-              .remove([item.image_path]);
+// Confirm delete
+document.getElementById("confirmDelete").onclick = async () => {
+  document.getElementById("confirmModal").classList.remove("show");
+  await actuallyDeleteItem(pendingDeleteId);
+};
 
-            if (storageError) throw storageError;
-          }
+// Actual delete logic
+async function actuallyDeleteItem(id) {
+  if (!id) return;
 
-          // 3. Delete database record
-          const { error: deleteError } = await supabase
-            .from("menu_items")
-            .delete()
-            .eq("id", id);
+  try {
+    showStatus("Deleting item…");
 
-          if (deleteError) throw deleteError;
+    // 1️⃣ Fetch item to get image path
+    const { data: item, error: fetchError } = await supabase
+      .from("menu_items")
+      .select("image_path")
+      .eq("id", id)
+      .single();
 
-          showStatus("Item deleted successfully");
-          loadItems();
-        } catch (err) {
-          console.error(err);
-          showStatus("Failed to delete item properly", false);
-        }
-      };
+    if (fetchError) throw fetchError;
+
+    // 2️⃣ Delete image from storage (if exists)
+    if (item.image_path) {
+      const { error: storageError } = await supabase.storage
+        .from("menu-images")
+        .remove([item.image_path]);
+
+      if (storageError) throw storageError;
+    }
+
+    // 3️⃣ Delete database record
+    const { error: deleteError } = await supabase
+      .from("menu_items")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) throw deleteError;
+
+    showStatus("Item deleted successfully");
+    loadItems();
+  } catch (err) {
+    console.error(err);
+    showStatus("Failed to delete item properly", false);
+  } finally {
+    pendingDeleteId = null;
+  }
+}
 
       // ADD
       addBtn.onclick = async () => {
