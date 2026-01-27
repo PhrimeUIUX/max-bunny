@@ -328,7 +328,13 @@ button:disabled {
   font-size: 15px;
 }
 
-.item-info .price,
+.item-info .price {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: orange;
+}
+
 .item-info .desc {
   font-size: 13px;
   color: var(--muted);
