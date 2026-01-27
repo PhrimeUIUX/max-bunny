@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Menu Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root {
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --primary: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #2563eb;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--primary);
+}
+
+.container {
+  max-width: 760px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.05);
+  margin-bottom: 20px;
+}
+
+h1 { font-size: 26px; margin: 0; }
+h2 { font-size: 18px; margin-bottom: 12px; }
+p { font-size: 14px; color: var(--muted); }
+
+input, textarea, button {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  background: var(--accent);
+  color: white;
+  transition: opacity .2s, transform .1s;
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+button.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+button.danger {
+  background: var(--danger);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.row {
+  display: grid;
+  gap: 12px;
+}
+
+.row-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.status {
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.status.ok {
+  background: #ecfdf5;
+  color: var(--success);
+}
+
+.status.err {
+  background: #fef2f2;
+  color: var(--danger);
+}
+
+/* ITEMS */
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.item:last-child { border-bottom: none; }
+
+.item img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info strong {
+  display: block;
+}
+
+.item-info .price,
+.item-info .desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* LOADING */
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d1d5db;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div>
+      <h1>Menu Admin</h1>
+      <p>Manage your restaurant menu</p>
+    </div>
+    <button id="logoutBtn" class="secondary">Logout</button>
+  </div>
+
+  <div id="status"></div>
+
+  <!-- LOGIN -->
+  <div id="loginBox" class="card">
+    <h2>Admin Login</h2>
+    <div class="row">
+      <input id="email" placeholder="Email" />
+      <input id="password" type="password" placeholder="Password" />
+      <button id="loginBtn">Sign in</button>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="adminBox" style="display:none;">
+
+    <div class="card">
+      <h2>Add Menu Item</h2>
+      <div class="row row-2">
+        <input id="name" placeholder="Item name" />
+        <input id="price" type="number" placeholder="Price (₱)" />
+      </div>
+      <div class="row">
+        <textarea id="description" placeholder="Item description"></textarea>
+        <input id="image" type="file" />
+        <button id="addBtn">Add Item</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Menu Items</h2>
+      <div id="items"></div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+
+const SUPABASE_URL = "https://prteyzbjjzkfyogphwrg.supabase.co"
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydGV5emJqanprZnlvZ3Bod3JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0ODI0MTYsImV4cCI6MjA4NTA1ODQxNn0.VWJS8IcAhXSucmgQiOw9fpl79apwCYOmTdaC31_Invw"
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+window.supabase = supabase
+
+const statusBox = document.getElementById("status")
+const loginBox = document.getElementById("loginBox")
+const adminBox = document.getElementById("adminBox")
+const addBtn = document.getElementById("addBtn")
+
+const emailEl = document.getElementById("email")
+const passEl = document.getElementById("password")
+const nameEl = document.getElementById("name")
+const priceEl = document.getElementById("price")
+const descEl = document.getElementById("description")
+const imageEl = document.getElementById("image")
+const itemsEl = document.getElementById("items")
+
+function showStatus(msg, ok = true) {
+  statusBox.className = `status ${ok ? "ok" : "err"}`
+  statusBox.innerHTML = msg
+}
+
+function setLoading(isLoading, text = "Processing...") {
+  addBtn.disabled = isLoading
+  addBtn.innerHTML = isLoading
+    ? `<span class="loading"><span class="spinner"></span>${text}</span>`
+    : "Add Item"
+}
+
+// AUTH
+async function checkSession() {
+  const { data } = await supabase.auth.getSession()
+  loginBox.style.display = data.session ? "none" : "block"
+  adminBox.style.display = data.session ? "block" : "none"
+  if (data.session) loadItems()
+}
+
+document.getElementById("loginBtn").onclick = async () => {
+  const { error } = await supabase.auth.signInWithPassword({
+    email: emailEl.value.trim(),
+    password: passEl.value.trim()
+  })
+  error ? showStatus(error.message, false) : checkSession()
+}
+
+document.getElementById("logoutBtn").onclick = async () => {
+  await supabase.auth.signOut()
+  showStatus("Logged out")
+  checkSession()
+}
+
+// LOAD
+async function loadItems() {
+  const { data } = await supabase
+    .from("menu_items")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  itemsEl.innerHTML = data.map(i => `
+    <div class="item">
+      <img src="${i.image_url}" />
+      <div class="item-info">
+        <strong>${i.name}</strong>
+        <div class="price">₱${i.price}</div>
+        <div class="desc">${i.description || ""}</div>
+      </div>
+      <button class="danger" onclick="deleteItem('${i.id}')">Delete</button>
+    </div>
+  `).join("")
+}
+
+window.deleteItem = async (id) => {
+  if (!confirm("Delete item?")) return
+  await supabase.from("menu_items").delete().eq("id", id)
+  loadItems()
+}
+
+// ADD
+addBtn.onclick = async () => {
+  try {
+    if (!nameEl.value || !priceEl.value || !imageEl.files[0])
+      throw new Error("All required fields must be filled")
+
+    setLoading(true, "Uploading image...")
+    showStatus("Uploading image…")
+
+    const file = imageEl.files[0]
+    const path = `items/${Date.now()}-${file.name}`
+
+    const upload = await supabase.storage.from("menu-images").upload(path, file)
+    if (upload.error) throw upload.error
+
+    showStatus("Saving item…")
+    setLoading(true, "Saving item...")
+
+    const { data: img } = supabase
+      .storage.from("menu-images")
+      .getPublicUrl(path)
+
+    const insert = await supabase.from("menu_items").insert({
+      name: nameEl.value,
+      price: priceEl.value,
+      description: descEl.value,
+      image_url: img.publicUrl
+    })
+    if (insert.error) throw insert.error
+
+    nameEl.value = priceEl.value = descEl.value = imageEl.value = ""
+    showStatus("Item added successfully")
+    loadItems()
+  } catch (err) {
+    showStatus(err.message, false)
+  } finally {
+    setLoading(false)
+  }
+}
+
+checkSession()
+</script>
+</body>
+</html>

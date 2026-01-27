@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Menu</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --primary: #0f172a;
+  --muted: #64748b;
+  --border: #e5e7eb;
+  --accent: #2563eb;
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--primary);
+}
+
+/* HEADER */
+.header {
+  position: sticky;
+  top: 0;
+  background: rgba(248, 250, 252, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+  z-index: 10;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.header p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* CONTAINER */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px 16px 40px;
+}
+
+/* GRID */
+.menu-grid {
+  display: grid;
+  gap: 16px;
+}
+
+/* CARD */
+.card {
+  display: flex;
+  gap: 14px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.05);
+}
+
+.card img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-content h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.price {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+/* STATES */
+.loading {
+  text-align: center;
+  color: var(--muted);
+  padding: 40px 0;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 60px 0;
+}
+
+/* DESKTOP */
+@media (min-width: 640px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Our Menu</h1>
+  <p>Please scan, browse, and enjoy</p>
+</div>
+
+<div class="container">
+  <div id="menu" class="menu-grid"></div>
+  <div id="state" class="loading">Loading menu…</div>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"
+
+const SUPABASE_URL = "https://prteyzbjjzkfyogphwrg.supabase.co"
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydGV5emJqanprZnlvZ3Bod3JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0ODI0MTYsImV4cCI6MjA4NTA1ODQxNn0.VWJS8IcAhXSucmgQiOw9fpl79apwCYOmTdaC31_Invw"
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const menuEl = document.getElementById("menu")
+const stateEl = document.getElementById("state")
+
+async function loadMenu() {
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    stateEl.textContent = error.message
+    return
+  }
+
+  if (!data.length) {
+    stateEl.className = "empty"
+    stateEl.textContent = "Menu is currently unavailable"
+    return
+  }
+
+  stateEl.remove()
+
+  menuEl.innerHTML = data.map(item => `
+    <div class="card">
+      <img src="${item.image_url}" alt="${item.name}" />
+      <div class="card-content">
+        <h3>${item.name}</h3>
+        <div class="price">₱${item.price}</div>
+        <div class="desc">${item.description || ""}</div>
+      </div>
+    </div>
+  `).join("")
+}
+
+loadMenu()
+</script>
+
+</body>
+</html>
