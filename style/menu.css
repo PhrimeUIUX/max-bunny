@@ -189,12 +189,12 @@ body {
   }
 }
 
-/* ===== MODAL ===== */
+/* ===== MODAL OVERLAY ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   display: none;
   align-items: center;
   justify-content: center;
@@ -205,22 +205,30 @@ body {
   display: flex;
 }
 
+/* ===== MODAL CARD ===== */
 .modal {
+  position: relative;
   width: 100%;
-  max-width: 420px;
+  max-width: 420px; /* mobile */
   margin: 16px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
+
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(22px) saturate(160%);
   border-radius: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+
+  box-shadow:
+    0 40px 90px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
   overflow: hidden;
   animation: pop 0.25s ease;
 }
 
+/* ===== ANIMATION ===== */
 @keyframes pop {
   from {
-    transform: scale(0.96) translateY(10px);
+    transform: scale(0.96) translateY(12px);
     opacity: 0;
   }
   to {
@@ -229,45 +237,119 @@ body {
   }
 }
 
+/* ===== IMAGE ===== */
 .modal img {
   width: 100%;
-  height: 240px;
+  height: 220px;
   object-fit: cover;
 }
 
+/* ===== CONTENT ===== */
 .modal-content {
-  padding: 20px;
+  padding: 20px 22px 24px;
 }
 
 .modal-content h3 {
   margin: 0;
   font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
 .modal-price {
-  margin-top: 6px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--accent);
+  white-space: nowrap;
 }
+
 
 .modal-desc {
   margin-top: 12px;
   font-size: 14px;
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
+/* ===== CLOSE BUTTON ===== */
 .close-btn {
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 36px;
-  height: 36px;
+
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: rgba(249, 115, 22, 0.85);
+
+  background: rgba(249, 115, 22, 0.9);
   color: #fff;
   border: none;
+
   font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
+
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.45);
 }
+
+/* ========================= */
+/* ===== RESPONSIVE ======== */
+/* ========================= */
+
+/* tablets */
+@media (min-width: 640px) {
+  .modal {
+    max-width: 520px;
+  }
+
+  .modal img {
+    height: 260px;
+  }
+
+  .modal-content h3 {
+    font-size: 20px;
+  }
+}
+
+/* desktops */
+@media (min-width: 1024px) {
+  .modal {
+    max-width: 680px;
+    border-radius: 32px;
+  }
+
+  .modal img {
+    height: 320px;
+  }
+
+  .modal-content {
+    padding: 28px 32px 32px;
+  }
+
+  .modal-content h3 {
+    font-size: 24px;
+  }
+
+  .modal-price {
+    font-size: 18px;
+  }
+
+  .modal-desc {
+    font-size: 15px;
+  }
+}
+
