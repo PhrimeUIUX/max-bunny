@@ -161,7 +161,7 @@ button:disabled {
   gap: 8px;
 }
 
-/* 📱 Mobile */
+/* Mobile Button Column */
 @media (max-width: 640px) {
   .item-actions {
     flex-direction: column;
@@ -291,14 +291,14 @@ button:disabled {
 .items-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(2, 1fr); /* mobile default */
+  grid-template-columns: repeat(1, 1fr); /* mobile default */
   align-items: stretch;
 }
 
 /* tablets / small laptops */
 @media (min-width: 640px) {
   .items-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
