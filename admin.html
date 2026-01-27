@@ -64,7 +64,8 @@
 
         <div class="card">
           <h2>Menu Items</h2>
-          <div id="items"></div>
+
+          <div id="items" class="items-grid"></div>
         </div>
       </div>
     </div>
@@ -290,7 +291,7 @@
       // ================================
       // IMAGE RESIZE BEFORE UPLOAD
       // ================================
-      async function resizeImage(file, maxWidth = 300, quality = 0.8) {
+      async function resizeImage(file, maxWidth = 1500, quality = 0.8) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
           const img = new Image();
@@ -338,7 +339,7 @@
 
           // 🔥 Resize + compress BEFORE upload
           showStatus("Optimizing image…");
-          const resizedBlob = await resizeImage(originalFile, 300, 0.8);
+          const resizedBlob = await resizeImage(originalFile, 1500, 0.8);
 
           // Create a clean, compressed file
           const file = new File([resizedBlob], "menu.jpg", {

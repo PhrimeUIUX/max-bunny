@@ -277,6 +277,28 @@ button:disabled {
   color: var(--danger);
 }
 
+.items-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, 1fr); /* mobile default */
+  align-items: stretch;
+}
+
+/* tablets / small laptops */
+@media (min-width: 640px) {
+  .items-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* desktops / wide screens */
+@media (min-width: 1024px) {
+  .items-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+
 /* MENU ITEMS */
 .item {
   display: flex;
