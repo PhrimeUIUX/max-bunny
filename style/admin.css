@@ -22,7 +22,7 @@
 
 body {
   margin: 0;
-  font-family: Inter, system-ui, sans-serif;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   color: var(--text);
   background:
     radial-gradient(circle at top, #1e293b, var(--bg2)),
