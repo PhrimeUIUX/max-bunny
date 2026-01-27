@@ -116,6 +116,8 @@
       const imageEl = document.getElementById("image");
       const itemsEl = document.getElementById("items");
 
+      let editingItemId = null;
+
       let statusTimeout;
 
       function showStatus(msg, ok = true, duration = 3000) {
@@ -214,12 +216,41 @@
         <div class="price">₱${i.price}</div>
         <div class="desc">${i.description || ""}</div>
       </div>
-      <button class="danger" onclick="deleteItem('${i.id}')">Delete</button>
+      <div class="item-actions" style="display:flex; gap:8px; margin-top:8px;">
+  <button onclick="startEditItem('${i.id}')">Edit</button>
+  <button class="danger" onclick="deleteItem('${i.id}')">Delete</button>
+</div>
+
     </div>
   `,
           )
           .join("");
       }
+
+      let oldImagePath = null;
+
+      window.startEditItem = async (id) => {
+        const { data, error } = await supabase
+          .from("menu_items")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) {
+          showStatus("Failed to load item", false);
+          return;
+        }
+
+        nameEl.value = data.name;
+        priceEl.value = data.price;
+        descEl.value = data.description || "";
+
+        editingItemId = id;
+        oldImagePath = data.image_path; // 👈 store old image
+        addBtn.textContent = "Update Item";
+
+        showStatus("Editing item");
+      };
 
       // ================================
       // DELETE ITEM (GLASS CONFIRM)
@@ -329,54 +360,92 @@
       // ADD
       addBtn.onclick = async () => {
         try {
-          if (!nameEl.value || !priceEl.value || !imageEl.files[0])
-            throw new Error("All required fields must be filled");
+          if (!nameEl.value || !priceEl.value)
+            throw new Error("Name and price are required");
 
-          setLoading(true, "Uploading image...");
-          showStatus("Uploading image…");
+          const isEditing = !!editingItemId;
 
-          const originalFile = imageEl.files[0];
+          setLoading(true, isEditing ? "Updating..." : "Adding...");
 
-          // 🔥 Resize + compress BEFORE upload
-          showStatus("Optimizing image…");
-          const resizedBlob = await resizeImage(originalFile, 1500, 0.8);
+          let image_url = null;
+          let image_path = null;
 
-          // Create a clean, compressed file
-          const file = new File([resizedBlob], "menu.jpg", {
-            type: "image/jpeg",
-          });
+          // If uploading a NEW image
+          if (imageEl.files[0]) {
+            showStatus("Optimizing image…");
+            const resizedBlob = await resizeImage(imageEl.files[0], 1500, 0.8);
 
-          // Professional filename
-          const safeName = nameEl.value
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, "-");
+            const file = new File([resizedBlob], "menu.jpg", {
+              type: "image/jpeg",
+            });
 
-          const path = `items/${safeName}-${Date.now()}.jpg`;
+            const safeName = nameEl.value
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "-");
 
-          const upload = await supabase.storage
-            .from("menu-images")
-            .upload(path, file);
-          if (upload.error) throw upload.error;
+            image_path = `items/${safeName}-${Date.now()}.jpg`;
 
-          showStatus("Saving item…");
-          setLoading(true, "Saving item...");
+            const upload = await supabase.storage
+              .from("menu-images")
+              .upload(image_path, file);
 
-          const { data: img } = supabase.storage
-            .from("menu-images")
-            .getPublicUrl(path);
+            if (upload.error) throw upload.error;
 
-          const insert = await supabase.from("menu_items").insert({
-            name: nameEl.value,
-            price: priceEl.value,
-            description: descEl.value,
-            image_url: img.publicUrl,
-            image_path: path, // 👈 critical
-          });
+            const { data: img } = supabase.storage
+              .from("menu-images")
+              .getPublicUrl(image_path);
 
-          if (insert.error) throw insert.error;
+            image_url = img.publicUrl;
+          }
 
+          if (isEditing) {
+            const updateData = {
+              name: nameEl.value,
+              price: priceEl.value,
+              description: descEl.value,
+            };
+
+            if (image_url) {
+              updateData.image_url = image_url;
+              updateData.image_path = image_path;
+            }
+
+            const { error } = await supabase
+              .from("menu_items")
+              .update(updateData)
+              .eq("id", editingItemId);
+
+            if (error) throw error;
+
+            // 🔥 DELETE OLD IMAGE SAFELY
+            if (image_url && oldImagePath) {
+              await supabase.storage.from("menu-images").remove([oldImagePath]);
+            }
+
+            showStatus("Item updated");
+          } else {
+            // ➕ INSERT
+            if (!image_url) throw new Error("Image is required");
+
+            const { error } = await supabase.from("menu_items").insert({
+              name: nameEl.value,
+              price: priceEl.value,
+              description: descEl.value,
+              image_url,
+              image_path,
+            });
+
+            if (error) throw error;
+
+            showStatus("Item added");
+          }
+
+          // Reset form
           nameEl.value = priceEl.value = descEl.value = imageEl.value = "";
-          showStatus("Item added successfully");
+          editingItemId = null;
+          oldImagePath = null;
+          addBtn.textContent = "Add Item";
+
           loadItems();
         } catch (err) {
           showStatus(err.message, false);

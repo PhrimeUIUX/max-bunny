@@ -156,6 +156,23 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 📱 Mobile */
+@media (max-width: 640px) {
+  .item-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .item-actions button {
+    width: 100%;
+  }
+}
+
 /* LOGOUT BUTTON – DANGER GLASS */
 .logout-btn {
   align-self: flex-end;
@@ -197,8 +214,7 @@ button:disabled {
     rgba(239, 68, 68, 0.55),
     rgba(127, 29, 29, 0.55)
   );
-  box-shadow:
-    0 12px 34px rgba(239, 68, 68, 0.45);
+  box-shadow: 0 12px 34px rgba(239, 68, 68, 0.45);
   transform: translateY(-1px);
 }
 
@@ -211,7 +227,6 @@ button:disabled {
 .logout-btn svg {
   margin-right: 6px;
 }
-
 
 /* GRID */
 .row {
@@ -257,15 +272,11 @@ button:disabled {
     max-height 0.35s ease;
 }
 
-
 .status.show {
   opacity: 1;
   transform: translateY(0) scale(1);
   max-height: 120px;
 }
-
-
-
 
 .status.ok {
   background: rgba(34, 197, 94, 0.2);
@@ -297,7 +308,6 @@ button:disabled {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-
 
 /* MENU ITEMS */
 .item {
@@ -406,4 +416,3 @@ button:disabled {
   gap: 12px;
   margin-top: 18px;
 }
-
