@@ -11,18 +11,10 @@
   <body>
     <div class="container">
       <div class="topbar">
-        <button
-          style="
-            width: fit-content;
-            font-weight: 400;
-            align-self: flex-end;
-            display: none;
-          "
-          id="logoutBtn"
-          class="secondary"
-        >
-          Logout
-        </button>
+        <button id="logoutBtn" class="logout-btn">
+  Logout
+</button>
+
         <div
           style="
             display: flex;
@@ -86,6 +78,18 @@
         <div class="confirm-actions">
           <button id="cancelDelete" class="secondary">Cancel</button>
           <button id="confirmDelete" class="danger">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="logoutModal" class="confirm-backdrop">
+      <div class="confirm-card">
+        <h3>Log out?</h3>
+        <p>You’ll need to sign in again to manage the menu.</p>
+
+        <div class="confirm-actions">
+          <button id="cancelLogout" class="secondary">Cancel</button>
+          <button id="confirmLogout" class="danger">Log out</button>
         </div>
       </div>
     </div>
@@ -175,10 +179,23 @@
         error ? showStatus(error.message, false) : checkSession();
       };
 
-      document.getElementById("logoutBtn").onclick = async () => {
+      // ================================
+      // LOGOUT CONFIRMATION
+      // ================================
+
+      document.getElementById("logoutBtn").onclick = () => {
+        document.getElementById("logoutModal").classList.add("show");
+      };
+
+      document.getElementById("cancelLogout").onclick = () => {
+        document.getElementById("logoutModal").classList.remove("show");
+      };
+
+      document.getElementById("confirmLogout").onclick = async () => {
+        document.getElementById("logoutModal").classList.remove("show");
+
         await supabase.auth.signOut();
         showStatus("Logged out");
-        checkSession();
       };
 
       // LOAD
@@ -206,71 +223,71 @@
       }
 
       // ================================
-// DELETE ITEM (GLASS CONFIRM)
-// ================================
+      // DELETE ITEM (GLASS CONFIRM)
+      // ================================
 
-let pendingDeleteId = null;
+      let pendingDeleteId = null;
 
-// Called when user clicks Delete button
-window.deleteItem = (id) => {
-  pendingDeleteId = id;
-  document.getElementById("confirmModal").classList.add("show");
-};
+      // Called when user clicks Delete button
+      window.deleteItem = (id) => {
+        pendingDeleteId = id;
+        document.getElementById("confirmModal").classList.add("show");
+      };
 
-// Cancel delete
-document.getElementById("cancelDelete").onclick = () => {
-  pendingDeleteId = null;
-  document.getElementById("confirmModal").classList.remove("show");
-};
+      // Cancel delete
+      document.getElementById("cancelDelete").onclick = () => {
+        pendingDeleteId = null;
+        document.getElementById("confirmModal").classList.remove("show");
+      };
 
-// Confirm delete
-document.getElementById("confirmDelete").onclick = async () => {
-  document.getElementById("confirmModal").classList.remove("show");
-  await actuallyDeleteItem(pendingDeleteId);
-};
+      // Confirm delete
+      document.getElementById("confirmDelete").onclick = async () => {
+        document.getElementById("confirmModal").classList.remove("show");
+        await actuallyDeleteItem(pendingDeleteId);
+      };
 
-// Actual delete logic
-async function actuallyDeleteItem(id) {
-  if (!id) return;
+      // Actual delete logic
+      async function actuallyDeleteItem(id) {
+        if (!id) return;
 
-  try {
-    showStatus("Deleting item…");
+        try {
+          showStatus("Deleting item…");
 
-    // 1️⃣ Fetch item to get image path
-    const { data: item, error: fetchError } = await supabase
-      .from("menu_items")
-      .select("image_path")
-      .eq("id", id)
-      .single();
+          // 1️⃣ Fetch item to get image path
+          const { data: item, error: fetchError } = await supabase
+            .from("menu_items")
+            .select("image_path")
+            .eq("id", id)
+            .single();
 
-    if (fetchError) throw fetchError;
+          if (fetchError) throw fetchError;
 
-    // 2️⃣ Delete image from storage (if exists)
-    if (item.image_path) {
-      const { error: storageError } = await supabase.storage
-        .from("menu-images")
-        .remove([item.image_path]);
+          // 2️⃣ Delete image from storage (if exists)
+          if (item.image_path) {
+            const { error: storageError } = await supabase.storage
+              .from("menu-images")
+              .remove([item.image_path]);
 
-      if (storageError) throw storageError;
-    }
+            if (storageError) throw storageError;
+          }
 
-    // 3️⃣ Delete database record
-    const { error: deleteError } = await supabase
-      .from("menu_items")
-      .delete()
-      .eq("id", id);
+          // 3️⃣ Delete database record
+          const { error: deleteError } = await supabase
+            .from("menu_items")
+            .delete()
+            .eq("id", id);
 
-    if (deleteError) throw deleteError;
+          if (deleteError) throw deleteError;
 
-    showStatus("Item deleted successfully");
-    loadItems();
-  } catch (err) {
-    console.error(err);
-    showStatus("Failed to delete item properly", false);
-  } finally {
-    pendingDeleteId = null;
-  }
-}
+          showStatus("Item deleted successfully");
+          loadItems();
+        } catch (err) {
+          console.error(err);
+          showStatus("Failed to delete item properly", false);
+        } finally {
+          pendingDeleteId = null;
+        }
+      }
 
       // ADD
       addBtn.onclick = async () => {
