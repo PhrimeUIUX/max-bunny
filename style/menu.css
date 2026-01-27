@@ -212,8 +212,7 @@ body {
   max-width: 420px; /* mobile */
   margin: 16px;
 
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(22px) saturate(160%);
+  background-color: white;
   border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.45);
 
