@@ -43,15 +43,27 @@ body.cart-open .cart-fab {
    CART OVERLAY
 ============================== */
 
+/* ===== Overlay ===== */
 .cart-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(6px);
+
+  /* Fallback (old iOS) */
+  background: rgba(15, 23, 42, 0.55);
+
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
   z-index: 98;
+}
+
+/* Blur only if supported */
+@supports (backdrop-filter: blur(6px)) or (-webkit-backdrop-filter: blur(6px)) {
+  .cart-overlay {
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
 }
 
 /* Active state */
@@ -60,10 +72,28 @@ body.cart-open .cart-fab {
   pointer-events: auto;
 }
 
-/* Cart drawer should be above overlay */
+/* ===== Cart Drawer ===== */
 .cart-drawer {
+  position: fixed;
   z-index: 99;
+
+  /* Fallback (no blur devices) */
+  background: #ffffff;
+
+  /* Recommended for iOS rendering stability */
+  will-change: transform;
+  transform: translateZ(0);
 }
+
+/* Blur drawer only if supported */
+@supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+  .cart-drawer {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
 
 .brand h1,
 .card-header h3,

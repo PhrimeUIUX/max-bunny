@@ -315,11 +315,19 @@ function renderCart() {
 
 
 function openMessenger(items) {
-  if (!items.length) return;
-  if (!selectedLat || !selectedLng) {
+  if (!Array.isArray(items) || items.length === 0) return;
+
+  if (
+    typeof selectedLat !== "number" ||
+    typeof selectedLng !== "number"
+  ) {
     alert("Delivery location not available");
     return;
   }
+
+  /* ==============================
+     BUILD MESSAGE
+  ============================== */
 
   let message = `🧾 ORDER SUMMARY\n`;
   message += `——————————————\n`;
@@ -342,9 +350,24 @@ function openMessenger(items) {
 
   message += `Ordered via Web Kiosk`;
 
-  const url = `https://m.me/Phrimeuniverse?text=${encodeURIComponent(message)}`;
-  window.open(url, "_blank");
+  const encoded = encodeURIComponent(message);
+
+  /* ==============================
+     MESSENGER OPEN (APP → WEB)
+  ============================== */
+
+  const appUrl = `fb-messenger://share?link=https://m.me/Phrimeuniverse&text=${encoded}`;
+  const webUrl = `https://m.me/Phrimeuniverse?text=${encoded}`;
+
+  // Try native app first
+  window.location.href = appUrl;
+
+  // Fallback to web Messenger
+  setTimeout(() => {
+    window.location.href = webUrl;
+  }, 700);
 }
+
 
 
 
