@@ -406,6 +406,7 @@ checkoutBtn.onclick = () => {
     checkoutStep = "location";
     checkoutBtn.textContent = "Confirm & Send";
 
+    requestLocationImmediately();
     openLocationStep();
     return;
   }
@@ -421,6 +422,48 @@ checkoutBtn.onclick = () => {
     resetCheckout();
   }
 };
+
+function requestLocationImmediately() {
+  const step = document.getElementById("locationStep");
+  step.style.display = "block";
+
+  if (!navigator.geolocation) {
+    fallbackMap();
+    return;
+  }
+
+  let resolved = false;
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      resolved = true;
+      initMap(pos.coords.latitude, pos.coords.longitude);
+    },
+    () => {
+      fallbackMap();
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 7000,       // 👈 REQUIRED for iOS
+      maximumAge: 0
+    }
+  );
+
+  // ⏱ HARD FAILSAFE (older iPhones)
+  setTimeout(() => {
+    if (!resolved) fallbackMap();
+  }, 8000);
+}
+
+
+function fallbackMap() {
+  // Manila default (change if needed)
+  const fallbackLat = 14.5995;
+  const fallbackLng = 120.9842;
+
+  initMap(fallbackLat, fallbackLng);
+}
+
 
 
 function openLocationStep() {
