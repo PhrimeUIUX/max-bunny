@@ -5,6 +5,7 @@
     <title>Max & Bunny Menu</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -28,8 +29,28 @@
           <h1>Max & Bunny</h1>
           <p>Scan • Browse • Enjoy</p>
         </div>
+        <!-- FILTER BAR -->
+    <div style="margin-left: auto;" class="menu-filters">
+      <div class="search-wrap">
+        <input
+          type="search"
+          id="searchInput"
+          placeholder="Search menu…"
+          aria-label="Search menu"
+        />
+        <button id="clearSearch" aria-label="Clear search">×</button>
+      </div>
+
+      <select id="priceFilter" aria-label="Sort by price">
+        <option value="">Sort by</option>
+        <option value="low-high">Price: Low → High</option>
+        <option value="high-low">Price: High → Low</option>
+      </select>
+    </div>
       </div>
     </header>
+
+    
 
     <!-- CONTENT -->
     <main class="container">
@@ -47,12 +68,12 @@
             <h3 id="modalTitle"></h3>
             <span class="modal-price" id="modalPrice"></span>
           </div>
-
           <div class="modal-desc" id="modalDesc"></div>
         </div>
       </div>
     </div>
 
+    <!-- SCRIPT -->
     <script type="module">
       import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -64,8 +85,23 @@
 
       const menuEl = document.getElementById("menu");
       const stateEl = document.getElementById("state");
+      const searchInput = document.getElementById("searchInput");
+      const priceFilter = document.getElementById("priceFilter");
 
-      async function loadMenu() {
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalImg = document.getElementById("modalImg");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalPrice = document.getElementById("modalPrice");
+      const modalDesc = document.getElementById("modalDesc");
+      const closeModal = document.getElementById("closeModal");
+
+      let allItems = [];
+
+      /* ==============================
+         FETCH + RENDER
+      ============================== */
+
+      async function fetchItems() {
         const { data, error } = await supabase
           .from("menu_items")
           .select("*")
@@ -83,39 +119,81 @@
         }
 
         stateEl.remove();
-
-        menuEl.innerHTML = data
-          .map(
-            (item) => `
-  <div class="card"
-    data-name="${item.name}"
-    data-price="${item.price}"
-    data-desc="${item.description || ""}"
-    data-img="${item.image_url}">
-
-    <img src="${item.image_url}" alt="${item.name}" />
-
-    <div class="card-content">
-      <div class="card-header">
-        <h3>${item.name}</h3>
-        <div class="price">₱${item.price}</div>
-      </div>
-      <div class="desc">${item.description || ""}</div>
-    </div>
-  </div>
-`,
-          )
-          .join("");
+        allItems = data;
+        renderItems(allItems);
       }
 
-      loadMenu();
+      function renderItems(items) {
+        menuEl.innerHTML = "";
 
-      const modalOverlay = document.getElementById("modalOverlay");
-      const modalImg = document.getElementById("modalImg");
-      const modalTitle = document.getElementById("modalTitle");
-      const modalPrice = document.getElementById("modalPrice");
-      const modalDesc = document.getElementById("modalDesc");
-      const closeModal = document.getElementById("closeModal");
+        if (!items.length) {
+          menuEl.innerHTML = '<p class="empty">No items found</p>';
+          return;
+        }
+
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.dataset.name = item.name;
+          card.dataset.price = item.price;
+          card.dataset.desc = item.description || "";
+          card.dataset.img = item.image_url;
+
+          card.innerHTML = `
+            <img src="${item.image_url}" alt="${item.name}" />
+            <div class="card-content">
+              <div class="card-header">
+                <h3>${item.name}</h3>
+                <div class="price">₱${item.price}</div>
+              </div>
+              <div class="desc clamp">
+                ${item.description || ""}
+              </div>
+            </div>
+          `;
+
+          menuEl.appendChild(card);
+        });
+      }
+
+      /* ==============================
+         SEARCH + SORT
+      ============================== */
+
+      function applyFilters() {
+        const term = searchInput.value.toLowerCase().trim();
+        const sort = priceFilter.value;
+
+        let filtered = allItems.filter(
+          (item) =>
+            item.name.toLowerCase().includes(term) ||
+            (item.description || "").toLowerCase().includes(term),
+        );
+
+        if (sort === "low-high") {
+          filtered.sort((a, b) => a.price - b.price);
+        }
+
+        if (sort === "high-low") {
+          filtered.sort((a, b) => b.price - a.price);
+        }
+
+        renderItems(filtered);
+      }
+
+      clearSearch.onclick = () => {
+        searchInput.value = "";
+        applyFilters();
+        searchInput.focus();
+      };
+
+      searchInput.addEventListener("input", applyFilters);
+      priceFilter.addEventListener("change", applyFilters);
+
+      /* ==============================
+         MODAL
+      ============================== */
 
       menuEl.addEventListener("click", (e) => {
         const card = e.target.closest(".card");
@@ -130,15 +208,19 @@
         modalOverlay.classList.add("active");
       });
 
-      closeModal.onclick = () => {
-        modalOverlay.classList.remove("active");
-      };
+      closeModal.onclick = () => modalOverlay.classList.remove("active");
 
       modalOverlay.onclick = (e) => {
         if (e.target === modalOverlay) {
           modalOverlay.classList.remove("active");
         }
       };
+
+      /* ==============================
+         INIT
+      ============================== */
+
+      fetchItems();
     </script>
   </body>
 </html>
