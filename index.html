@@ -85,6 +85,8 @@
       <span id="cartCount">0</span>
     </button>
 
+    <div id="cartOverlay" class="cart-overlay"></div>
+
     <!-- CART DRAWER -->
     <div id="cartDrawer" class="cart-drawer">
       <div class="cart-header">
@@ -99,9 +101,7 @@
           Total: <strong>₱<span id="cartTotal">0</span></strong>
         </div>
 
-        <button id="checkoutBtn" class="checkout-btn">
-          Order via Messenger
-        </button>
+        <button id="checkoutBtn" class="checkout-btn">Send Order</button>
       </div>
     </div>
 
@@ -127,7 +127,6 @@
       const modalDesc = document.getElementById("modalDesc");
       const closeModal = document.getElementById("closeModal");
 
-      
       closeModal.onclick = () => {
         modalOverlay.classList.remove("active");
       };
@@ -197,7 +196,7 @@
               </div>
               <div class="card-actions">
   <button class="add-cart">Add to Cart</button>
-  <button class="order-now">Order</button>
+  <!-- <button class="order-now">Order</button> -->
 </div>
 
             </div>
@@ -287,15 +286,33 @@
       const cartTotalEl = document.getElementById("cartTotal");
       const cartCountEl = document.getElementById("cartCount");
       const checkoutBtn = document.getElementById("checkoutBtn");
+      const cartOverlay = document.getElementById("cartOverlay");
 
       let cart = [];
 
-      /* ==============================
-   CART DRAWER
-============================== */
+      /* OPEN CART */
+      cartBtn.onclick = () => {
+        cartDrawer.classList.add("active");
+        cartOverlay.classList.add("active");
+        document.body.classList.add("cart-open");
+      };
 
-      cartBtn.onclick = () => cartDrawer.classList.add("active");
-      closeCart.onclick = () => cartDrawer.classList.remove("active");
+      /* CLOSE CART */
+      function closeCartDrawer() {
+        cartDrawer.classList.remove("active");
+        cartOverlay.classList.remove("active");
+        document.body.classList.remove("cart-open");
+      }
+
+      closeCart.onclick = closeCartDrawer;
+
+      /* CLICK OUTSIDE = CLOSE */
+      cartOverlay.onclick = closeCartDrawer;
+
+      /* PREVENT INSIDE CLICKS FROM CLOSING */
+      cartDrawer.onclick = (e) => {
+        e.stopPropagation();
+      };
 
       /* ==============================
    CART LOGIC
@@ -398,7 +415,7 @@
     `;
         });
 
-        cartTotalEl.textContent = `₱${total}`;
+        cartTotalEl.textContent = `${total}`;
         cartCountEl.textContent = count;
       }
 
