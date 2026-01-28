@@ -3,6 +3,7 @@
 
   --glass-bg: rgba(255, 255, 255, 0.6);
   --glass-border: rgba(255, 255, 255, 0.4);
+  --glass: rgba(255, 255, 255, 0.18);
 
   --text-main: #1f2937;
   --text-muted: #6b7280;
@@ -273,11 +274,254 @@ input[type="search"] {
   color: var(--muted);
 }
 
+/* ===== FLOATING CART BUTTON ===== */
+.cart-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+
+  
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  font-size: 22px;
+  color: #111;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 165, 90, 0.25),
+    rgba(255, 255, 255, 0.12)
+  );
+
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+}
+
+/* Cart count badge */
+#cartCount {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff8c42;
+  color: #fff;
+  font-size: 12px;
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+
+/* ===== CART DRAWER ===== */
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 320px;
+  max-width: 90%;
+  z-index: 1000;
+
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.521),
+    rgba(255, 255, 255, 0.438)
+  );
+
+  backdrop-filter: blur(18px) saturate(160%);
+}
+
+.cart-drawer.active {
+  transform: translateX(0);
+}
+
+/* Header */
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.cart-header button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Items */
+.cart-items {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+/* Footer */
+.cart-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.checkout-btn {
+  width: 100%;
+  padding: 14px;
+
+  margin-top: 10px;
+
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+
+  background: #ff8c42;
+  color: white;
+}
+
+
+/* ================================
+   CARD / MODAL ACTIONS CONTAINER
+================================ */
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* Optional: tighter spacing in modal */
+.modal .card-actions {
+  margin-top: 18px;
+}
+
+/* ================================
+   BASE BUTTON (GLASS)
+================================ */
+
+.card-actions button {
+  flex: 1;
+
+  padding: 11px 14px;
+  border-radius: 14px;
+
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+
+  cursor: pointer;
+  color: var(--text-main);
+
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.15)
+  );
+
+  backdrop-filter: blur(14px);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 8px 20px rgba(0, 0, 0, 0.08);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.card-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 12px 26px rgba(0, 0, 0, 0.12);
+}
+
+.card-actions button:active {
+  transform: scale(0.96);
+}
+
+/* ================================
+   ADD TO CART (ACCENT GLASS)
+================================ */
+
+.card-actions .add-cart {
+  color: var(--accent);
+  border-color: rgba(249, 115, 22, 0.35);
+
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.18),
+    rgba(255, 255, 255, 0.18)
+  );
+}
+
+.card-actions .add-cart:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.28),
+    rgba(255, 255, 255, 0.22)
+  );
+}
+
+/* ================================
+   ORDER NOW (PRIMARY CTA)
+================================ */
+
+.card-actions .order-now {
+  color: #fff;
+  border: none;
+
+  background: linear-gradient(
+    135deg,
+    var(--accent-soft),
+    var(--accent)
+  );
+
+  box-shadow:
+    0 12px 30px rgba(249, 115, 22, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.card-actions .order-now:hover {
+  box-shadow:
+    0 16px 38px rgba(249, 115, 22, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+
+/* ================================
+   MOBILE UX
+================================ */
+
+@media (max-width: 480px) {
+  .card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card .card-actions button {
+    padding: 13px;
+    font-size: 14px;
+  }
+}
 
 
 /* ===== GRID ===== */
 .menu-grid {
   display: grid;
+  align-items: stretch;
   grid-template-columns: repeat(2, 1fr); /* MOBILE = 2 COLUMNS */
   gap: 14px;
 }
@@ -320,6 +564,7 @@ input[type="search"] {
   padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 6px;
 }
 
@@ -351,6 +596,8 @@ input[type="search"] {
   color: var(--text-muted);
   line-height: 1.45;
 
+  margin-bottom: 5px;
+  
   display: -webkit-box;
   -webkit-line-clamp: 2; /* 👈 number of lines shown */
   -webkit-box-orient: vertical;

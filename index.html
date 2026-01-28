@@ -30,27 +30,25 @@
           <p>Scan • Browse • Enjoy</p>
         </div>
         <!-- FILTER BAR -->
-    <div style="margin-left: auto;" class="menu-filters">
-      <div class="search-wrap">
-        <input
-          type="search"
-          id="searchInput"
-          placeholder="Search menu…"
-          aria-label="Search menu"
-        />
-        <button id="clearSearch" aria-label="Clear search">×</button>
-      </div>
+        <div style="margin-left: auto" class="menu-filters">
+          <div class="search-wrap">
+            <input
+              type="search"
+              id="searchInput"
+              placeholder="Search menu…"
+              aria-label="Search menu"
+            />
+            <button id="clearSearch" aria-label="Clear search">×</button>
+          </div>
 
-      <select id="priceFilter" aria-label="Sort by price">
-        <option value="">Sort by</option>
-        <option value="low-high">Price: Low → High</option>
-        <option value="high-low">Price: High → Low</option>
-      </select>
-    </div>
+          <select id="priceFilter" aria-label="Sort by price">
+            <option value="">Sort by</option>
+            <option value="low-high">Price: Low → High</option>
+            <option value="high-low">Price: High → Low</option>
+          </select>
+        </div>
       </div>
     </header>
-
-    
 
     <!-- CONTENT -->
     <main class="container">
@@ -63,13 +61,47 @@
       <div class="modal">
         <button class="close-btn" id="closeModal">×</button>
         <img id="modalImg" />
+
         <div class="modal-content">
           <div class="modal-header">
             <h3 id="modalTitle"></h3>
             <span class="modal-price" id="modalPrice"></span>
           </div>
+
           <div class="modal-desc" id="modalDesc"></div>
+
+          <!-- ACTIONS -->
+          <div class="card-actions modal-actions">
+            <button id="modalAddCart" class="add-cart">Add to Cart</button>
+            <button id="modalOrderNow" class="order-now">Order Now</button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- FLOATING CART BUTTON -->
+    <button id="cartBtn" class="cart-fab">
+      🛒
+      <span id="cartCount">0</span>
+    </button>
+
+    <!-- CART DRAWER -->
+    <div id="cartDrawer" class="cart-drawer">
+      <div class="cart-header">
+        <h3>Your Order</h3>
+        <button id="closeCart">×</button>
+      </div>
+
+      <div id="cartItems" class="cart-items"></div>
+
+      <div class="cart-footer">
+        <div class="cart-total">
+          Total: <strong>₱<span id="cartTotal">0</span></strong>
+        </div>
+
+        <button id="checkoutBtn" class="checkout-btn">
+          Order via Messenger
+        </button>
       </div>
     </div>
 
@@ -95,7 +127,19 @@
       const modalDesc = document.getElementById("modalDesc");
       const closeModal = document.getElementById("closeModal");
 
+      
+      closeModal.onclick = () => {
+        modalOverlay.classList.remove("active");
+      };
+
+      // Prevent clicks inside modal from bubbling to overlay / menu
+      document.querySelector(".modal").onclick = (e) => {
+        e.stopPropagation();
+      };
+
       let allItems = [];
+
+      let activeItem = null;
 
       /* ==============================
          FETCH + RENDER
@@ -135,6 +179,7 @@
           const card = document.createElement("div");
           card.className = "card";
 
+          card.dataset.id = item.id; // ✅ ADD THIS LINE
           card.dataset.name = item.name;
           card.dataset.price = item.price;
           card.dataset.desc = item.description || "";
@@ -150,6 +195,11 @@
               <div class="desc clamp">
                 ${item.description || ""}
               </div>
+              <div class="card-actions">
+  <button class="add-cart">Add to Cart</button>
+  <button class="order-now">Order</button>
+</div>
+
             </div>
           `;
 
@@ -196,8 +246,24 @@
       ============================== */
 
       menuEl.addEventListener("click", (e) => {
+        if (modalOverlay.classList.contains("active")) return;
+
         const card = e.target.closest(".card");
         if (!card) return;
+
+        // ❌ Prevent modal opening when clicking buttons
+        if (
+          e.target.classList.contains("add-cart") ||
+          e.target.classList.contains("order-now")
+        ) {
+          return;
+        }
+
+        activeItem = {
+          id: card.dataset.id,
+          name: card.dataset.name,
+          price: Number(card.dataset.price),
+        };
 
         modalImg.src = card.dataset.img;
         modalTitle.textContent = card.dataset.name;
@@ -208,19 +274,191 @@
         modalOverlay.classList.add("active");
       });
 
-      closeModal.onclick = () => modalOverlay.classList.remove("active");
+      /* ==============================
+   INIT
+============================== */
 
-      modalOverlay.onclick = (e) => {
-        if (e.target === modalOverlay) {
-          modalOverlay.classList.remove("active");
+      fetchItems();
+
+      const cartBtn = document.getElementById("cartBtn");
+      const cartDrawer = document.getElementById("cartDrawer");
+      const closeCart = document.getElementById("closeCart");
+      const cartItemsEl = document.getElementById("cartItems");
+      const cartTotalEl = document.getElementById("cartTotal");
+      const cartCountEl = document.getElementById("cartCount");
+      const checkoutBtn = document.getElementById("checkoutBtn");
+
+      let cart = [];
+
+      /* ==============================
+   CART DRAWER
+============================== */
+
+      cartBtn.onclick = () => cartDrawer.classList.add("active");
+      closeCart.onclick = () => cartDrawer.classList.remove("active");
+
+      /* ==============================
+   CART LOGIC
+============================== */
+
+      const modalAddCart = document.getElementById("modalAddCart");
+      const modalOrderNow = document.getElementById("modalOrderNow");
+
+      modalAddCart.onclick = () => {
+        if (!activeItem) return;
+        addToCart(activeItem);
+        cartDrawer.classList.add("active"); // nice UX
+      };
+
+      modalOrderNow.onclick = () => {
+        if (!activeItem) return;
+        openMessenger([{ ...activeItem, qty: 1 }]);
+      };
+
+      function addToCart(item) {
+        const existing = cart.find((i) => i.id === item.id);
+
+        if (existing) {
+          existing.qty++;
+        } else {
+          cart.push({ ...item, qty: 1 });
         }
+
+        renderCart();
+      }
+
+      function removeFromCart(id) {
+        cart = cart.filter((item) => item.id !== id);
+        renderCart();
+      }
+
+      function increaseQty(id) {
+        const item = cart.find((i) => i.id === id);
+        if (!item) return;
+
+        item.qty++;
+        renderCart();
+      }
+
+      function decreaseQty(id) {
+        const item = cart.find((i) => i.id === id);
+        if (!item) return;
+
+        if (item.qty > 1) {
+          item.qty--;
+        } else {
+          removeFromCart(id);
+          return;
+        }
+
+        renderCart();
+      }
+
+      /* ==============================
+   RENDER CART
+============================== */
+
+      function renderCart() {
+        cartItemsEl.innerHTML = "";
+
+        if (!cart.length) {
+          cartItemsEl.innerHTML = `<p class="empty-cart">Your cart is empty</p>`;
+          cartTotalEl.textContent = "₱0";
+          cartCountEl.textContent = "0";
+          return;
+        }
+
+        let total = 0;
+        let count = 0;
+
+        cart.forEach((item) => {
+          const lineTotal = item.price * item.qty;
+          total += lineTotal;
+          count += item.qty;
+
+          cartItemsEl.innerHTML += `
+      <div class="cart-item">
+        <div class="cart-info">
+          <strong>${item.name}</strong>
+          <span>₱${item.price}</span>
+        </div>
+
+        <div class="cart-controls">
+          <button onclick="decreaseQty('${item.id}')">−</button>
+          <span>${item.qty}</span>
+          <button onclick="increaseQty('${item.id}')">+</button>
+        </div>
+
+        <button
+          class="cart-remove"
+          onclick="removeFromCart('${item.id}')">
+          ×
+        </button>
+      </div>
+    `;
+        });
+
+        cartTotalEl.textContent = `₱${total}`;
+        cartCountEl.textContent = count;
+      }
+
+      /* ==============================
+   MENU BUTTON HANDLERS
+============================== */
+
+      menuEl.addEventListener("click", (e) => {
+        const card = e.target.closest(".card");
+        if (!card) return;
+
+        const item = {
+          id: card.dataset.id,
+          name: card.dataset.name,
+          price: Number(card.dataset.price),
+        };
+
+        if (e.target.classList.contains("add-cart")) {
+          addToCart(item);
+        }
+
+        if (e.target.classList.contains("order-now")) {
+          openMessenger([{ ...item, qty: 1 }]);
+        }
+      });
+
+      /* ==============================
+   CHECKOUT
+============================== */
+
+      checkoutBtn.onclick = () => {
+        openMessenger(cart);
       };
 
       /* ==============================
-         INIT
-      ============================== */
+   MESSENGER ORDER
+============================== */
 
-      fetchItems();
+      function openMessenger(items) {
+        if (!items.length) return;
+
+        let message = "🧾 Order from Max & Bunny:\n\n";
+        let total = 0;
+
+        items.forEach((item, i) => {
+          const lineTotal = item.price * item.qty;
+          message += `${i + 1}. ${item.name} × ${item.qty} — ₱${lineTotal}\n`;
+          total += lineTotal;
+        });
+
+        message += `\nTotal: ₱${total}`;
+
+        const url = `https://m.me/Phrimeuniverse?text=${encodeURIComponent(message)}`;
+        window.open(url, "_blank");
+      }
+
+      window.addToCart = addToCart;
+      window.removeFromCart = removeFromCart;
+      window.increaseQty = increaseQty;
+      window.decreaseQty = decreaseQty;
     </script>
   </body>
 </html>
