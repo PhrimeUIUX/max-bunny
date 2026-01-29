@@ -17,6 +17,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const menuEl = document.getElementById("menu");
 const stateEl = document.getElementById("state");
 const searchInput = document.getElementById("searchInput");
+const clearSearch = document.getElementById("clearSearch");
 const priceFilter = document.getElementById("priceFilter");
 
 /* ==============================
@@ -152,7 +153,7 @@ function applyFilters() {
   let filtered = allItems.filter(
     (item) =>
       item.name.toLowerCase().includes(term) ||
-      (item.description || "").toLowerCase().includes(term),
+      (item.description || "").toLowerCase().includes(term)
   );
 
   if (sort === "low-high") filtered.sort((a, b) => a.price - b.price);
@@ -161,8 +162,35 @@ function applyFilters() {
   renderItems(filtered);
 }
 
+function resetFilters() {
+  searchInput.value = "";
+  priceFilter.value = "";
+  renderItems(allItems);
+}
+
+/* 🔑 CORE EVENTS — iOS SAFE */
+
+// Fires on typing (most cases)
 searchInput.addEventListener("input", applyFilters);
+
+// Fallback for older iOS when clear button is tapped
+searchInput.addEventListener("keyup", () => {
+  if (searchInput.value === "") resetFilters();
+});
+
+// Custom clear button (guaranteed to work)
+clearSearch.addEventListener("click", () => {
+  resetFilters();
+  searchInput.focus();
+});
+
+// Sorting
 priceFilter.addEventListener("change", applyFilters);
+
+
+
+
+
 
 /* ==============================
    MENU CLICK HANDLERS
@@ -315,12 +343,9 @@ function renderCart() {
 
 
 function openMessenger(items) {
-  if (!Array.isArray(items) || items.length === 0) return;
+  if (!items || !items.length) return;
 
-  if (
-    typeof selectedLat !== "number" ||
-    typeof selectedLng !== "number"
-  ) {
+  if (!selectedLat || !selectedLng) {
     alert("Delivery location not available");
     return;
   }
@@ -344,28 +369,20 @@ function openMessenger(items) {
 
   message += `——————————————\n`;
   message += `💰 TOTAL: ₱${total}\n\n`;
-
   message += `📍 DELIVERY LOCATION\n`;
   message += `https://maps.google.com/?q=${selectedLat},${selectedLng}\n\n`;
-
   message += `Ordered via Web Kiosk`;
 
   const encoded = encodeURIComponent(message);
+  const url = `https://m.me/Phrimeuniverse?text=${encoded}`;
 
-  /* ==============================
-     MESSENGER OPEN (APP → WEB)
-  ============================== */
+  // 🛡️ PRIMARY: try opening new tab
+  const win = window.open(url, "_blank");
 
-  const appUrl = `fb-messenger://share?link=https://m.me/Phrimeuniverse&text=${encoded}`;
-  const webUrl = `https://m.me/Phrimeuniverse?text=${encoded}`;
-
-  // Try native app first
-  window.location.href = appUrl;
-
-  // Fallback to web Messenger
-  setTimeout(() => {
-    window.location.href = webUrl;
-  }, 700);
+  // 🛡️ FALLBACK: force redirect (iOS-safe)
+  if (!win || win.closed || typeof win.closed === "undefined") {
+    window.location.href = url;
+  }
 }
 
 
