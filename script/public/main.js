@@ -142,6 +142,50 @@ function renderItems(items) {
   });
 }
 
+
+// BRANDING
+
+ const BRANDING_ID = "11327357-0269-422d-ae06-3f3835868e85";
+
+const logoEl = document.getElementById("brandLogo");
+const nameEl = document.getElementById("brandName");
+const sloganEl = document.getElementById("brandSlogan");
+
+async function loadBranding() {
+  const { data, error } = await supabase
+    .from("menu_settings")
+    .select("brand, slogan, logo_path")
+    .eq("id", BRANDING_ID)
+    .single();
+
+  if (error || !data) {
+    console.error("Branding load failed", error);
+    nameEl.textContent = "Menu";
+    return;
+  }
+
+  // Text
+  nameEl.textContent = data.brand || "Menu";
+  sloganEl.textContent = data.slogan || "";
+
+  // Logo (CACHE-SAFE)
+  if (data.logo_path) {
+    const { data: pub } = supabase.storage
+      .from("menu-images")
+      .getPublicUrl(data.logo_path);
+
+    logoEl.src = `${pub.publicUrl}?v=${Date.now()}`;
+  }
+}
+
+// Initial load
+loadBranding();
+
+
+
+
+
+
 /* ==============================
    SEARCH + SORT
 ============================== */

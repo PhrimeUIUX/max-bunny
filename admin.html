@@ -13,7 +13,6 @@
     />
 
     <link rel="stylesheet" href="style/admin.css" />
-
   </head>
 
   <body>
@@ -30,12 +29,18 @@
           "
         >
           <img
-            src="https://prteyzbjjzkfyogphwrg.supabase.co/storage/v1/object/public/menu-images/logo/maxbunny.jpg"
-            alt="max and bunny logo"
-            style="border-radius: 1000px"
+            id="brandLogo"
+            src=""
+            alt="Brand logo"
+            style="
+              border-radius: 1000px;
+              width: 80px;
+              height: 80px;
+              object-fit: cover;
+            "
           />
-          <h1>Admin</h1>
-          <p>Manage your restaurant menu</p>
+          <h1 id="brandTitle">Admin</h1>
+          <p id="brandSlogan">Manage your restaurant menu</p>
         </div>
       </div>
 
@@ -54,6 +59,34 @@
       <!-- ADMIN -->
       <div id="adminBox" style="display: none">
         <div class="card">
+          <div class="card">
+            <h2>Branding</h2>
+
+            <div class="row row-2">
+              <input id="brandInput" placeholder="Brand name" />
+              <input id="sloganInput" placeholder="Slogan" />
+            </div>
+
+            <div style="height: 12px"></div>
+
+            <div class="row">
+              <input id="logoInput" type="file" accept="image/*" />
+              <img
+  id="logoPreview"
+  style="
+    display:none;
+    margin-top:10px;
+    width:80px;
+    height:80px;
+    border-radius:1000px;
+    object-fit:cover;
+  "
+/>
+
+              <button id="saveBrandingBtn">Save Branding</button>
+            </div>
+          </div>
+
           <h2>Add Menu Item</h2>
           <div class="row row-2">
             <input id="name" placeholder="Item name" />
@@ -124,9 +157,132 @@
       const imageEl = document.getElementById("image");
       const itemsEl = document.getElementById("items");
 
+      const brandInput = document.getElementById("brandInput");
+      const sloganInput = document.getElementById("sloganInput");
+      const logoInput = document.getElementById("logoInput");
+      const saveBrandingBtn = document.getElementById("saveBrandingBtn");
+
+      const brandLogo = document.getElementById("brandLogo");
+      const brandTitle = document.getElementById("brandTitle");
+      const brandSlogan = document.getElementById("brandSlogan");
+
+      const BRANDING_ID = "11327357-0269-422d-ae06-3f3835868e85";
+
+
       let editingItemId = null;
 
       let statusTimeout;
+
+      const logoPreview = document.getElementById("logoPreview");
+
+logoInput.onchange = () => {
+  if (!logoInput.files[0]) return;
+  logoPreview.src = URL.createObjectURL(logoInput.files[0]);
+  logoPreview.style.display = "block";
+};
+
+
+
+
+      async function loadBranding() {
+        const { data, error } = await supabase
+          .from("menu_settings")
+          .select("*")
+          .eq("id", BRANDING_ID)
+          .single();
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        brandInput.value = data.brand || "";
+        sloganInput.value = data.slogan || "";
+
+        brandTitle.textContent = data.brand || "Admin";
+        brandSlogan.textContent = data.slogan || "";
+
+        if (data.logo_url) {
+          brandLogo.src = data.logo_url + "?t=" + Date.now();
+        }
+      }
+
+      
+
+      saveBrandingBtn.onclick = async () => {
+  try {
+    saveBrandingBtn.disabled = true;
+    showStatus("Saving branding…");
+
+    // 1️⃣ Load existing branding (to get old logo path)
+    const { data: existing, error: fetchErr } = await supabase
+      .from("menu_settings")
+      .select("logo_path")
+      .eq("id", BRANDING_ID)
+      .single();
+
+    if (fetchErr) throw fetchErr;
+
+    let logo_path = existing.logo_path || null;
+    let logo_url = null;
+
+    // 2️⃣ If uploading a new logo
+    if (logoInput.files[0]) {
+      const file = logoInput.files[0];
+
+      // 🔥 Delete old logo FIRST
+      if (logo_path) {
+        await supabase.storage
+          .from("menu-images")
+          .remove([logo_path]);
+      }
+
+      // 🔒 Unique filename (prevents cache hell)
+      logo_path = `logo/brand-${Date.now()}.jpg`;
+
+      const upload = await supabase.storage
+        .from("menu-images")
+        .upload(logo_path, file, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (upload.error) throw upload.error;
+
+      const { data: pub } = supabase.storage
+        .from("menu-images")
+        .getPublicUrl(logo_path);
+
+      logo_url = pub.publicUrl;
+    }
+
+    // 3️⃣ Update DB
+    const { error } = await supabase
+      .from("menu_settings")
+      .update({
+        brand: brandInput.value.trim(),
+        slogan: sloganInput.value.trim(),
+        ...(logo_path && logo_url
+          ? { logo_path, logo_url }
+          : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", BRANDING_ID);
+
+    if (error) throw error;
+
+    showStatus("Branding updated successfully");
+    logoInput.value = "";
+    logoPreview.style.display = "none";
+    loadBranding();
+  } catch (err) {
+    console.error(err);
+    showStatus("Failed to save branding", false);
+  } finally {
+    saveBrandingBtn.disabled = false;
+  }
+};
+
 
       function showStatus(msg, ok = true, duration = 3000) {
         if (statusTimeout) clearTimeout(statusTimeout);
@@ -154,6 +310,7 @@
           loginBox.style.display = "none";
           adminBox.style.display = "block";
           loadItems();
+          loadBranding();
         } else {
           logoutBtn.style.display = "none";
           loginBox.style.display = "block";
