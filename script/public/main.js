@@ -419,12 +419,12 @@ function openMessenger(items) {
     return;
   }
 
-  /* ==============================
-     BUILD MESSAGE
-  ============================== */
+  // ==============================
+  // BUILD MESSAGE (Messenger-safe)
+  // ==============================
 
-  let message = `🧾 ORDER SUMMARY\n`;
-  message += `——————————————\n`;
+  let message = `ORDER SUMMARY\n`;
+  message += `----------------------\n`;
 
   let total = 0;
 
@@ -433,26 +433,43 @@ function openMessenger(items) {
     total += lineTotal;
 
     message += `${i + 1}. ${item.name}\n`;
-    message += `   ₱${item.price} × ${item.qty} = ₱${lineTotal}\n`;
+    message += `₱${item.price} x ${item.qty} = ₱${lineTotal}\n`;
   });
 
-  message += `——————————————\n`;
-  message += `💰 TOTAL: ₱${total}\n\n`;
-  message += `📍 DELIVERY LOCATION\n`;
+  message += `----------------------\n`;
+  message += `TOTAL: ₱${total}\n\n`;
+  message += `DELIVERY LOCATION:\n`;
   message += `https://maps.google.com/?q=${selectedLat},${selectedLng}\n\n`;
-  message += `Ordered via Web Kiosk`;
+  message += `Sent via Web Kiosk`;
 
   const encoded = encodeURIComponent(message);
-  const url = `https://m.me/Phrimeuniverse?text=${encoded}`;
 
-  // 🛡️ PRIMARY: try opening new tab
-  const win = window.open(url, "_blank");
+  const page = "Phrimeuniverse";
 
-  // 🛡️ FALLBACK: force redirect (iOS-safe)
-  if (!win || win.closed || typeof win.closed === "undefined") {
-    window.location.href = url;
+  // ==============================
+  // PLATFORM DETECTION
+  // ==============================
+
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  let url = "";
+
+  if (isAndroid) {
+    // ✅ ANDROID — Messenger Intent (MOST IMPORTANT FIX)
+    url = `intent://send/${encoded}#Intent;scheme=fb-messenger;package=com.facebook.orca;end`;
+  } else {
+    // ✅ DESKTOP + iOS SAFEST
+    url = `https://www.messenger.com/t/${page}?text=${encoded}`;
   }
+
+  // ==============================
+  // SAFE NAVIGATION (NO POPUP)
+  // ==============================
+
+  window.location.href = url;
 }
+
 
 
 
