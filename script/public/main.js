@@ -412,26 +412,21 @@ function renderCart() {
 
 
 async function openMessenger(items) {
-  if (!items || !items.length) return;
+  if (!items?.length) return;
 
   if (!selectedLat || !selectedLng) {
     alert("Delivery location not available");
     return;
   }
 
-  /* ==============================
-     BUILD MESSAGE
-  ============================== */
-
+  // Build message
   let message = `ORDER SUMMARY\n`;
   message += `----------------------\n`;
 
   let total = 0;
-
   items.forEach((item, i) => {
     const lineTotal = item.price * item.qty;
     total += lineTotal;
-
     message += `${i + 1}. ${item.name}\n`;
     message += `₱${item.price} x ${item.qty} = ₱${lineTotal}\n`;
   });
@@ -442,40 +437,16 @@ async function openMessenger(items) {
   message += `https://maps.google.com/?q=${selectedLat},${selectedLng}\n\n`;
   message += `Sent via Web Kiosk`;
 
-  const encoded = encodeURIComponent(message);
-  const page = "Phrimeuniverse";
-
-  /* ==============================
-     COPY TO CLIPBOARD (GUARANTEE)
-  ============================== */
-
+  // GUARANTEED copy
   try {
     await navigator.clipboard.writeText(message);
-  } catch (err) {
-    console.warn("Clipboard copy failed", err);
-  }
+  } catch {}
 
-  /* ==============================
-     PLATFORM-SAFE OPEN
-  ============================== */
+  // ALWAYS WORKS
+  window.location.href = "https://m.me/Phrimeuniverse";
 
-  const isAndroid = /Android/i.test(navigator.userAgent);
-
-  let url = isAndroid
-    // Android: open Messenger app (text may or may not prefill)
-    ? `intent://send/${encoded}#Intent;scheme=fb-messenger;package=com.facebook.orca;end`
-    // Desktop / iOS
-    : `https://www.messenger.com/t/${page}?text=${encoded}`;
-
-  window.location.href = url;
-
-  /* ==============================
-     SOFT UX HINT (NON-BLOCKING)
-  ============================== */
-
-  setTimeout(() => {
-    showMessengerHint();
-  }, 600);
+  // UX hint
+  setTimeout(showMessengerHint, 600);
 }
 
 
