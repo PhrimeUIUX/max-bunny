@@ -35,43 +35,6 @@ let activeItem = null;
 
 
 
-let deliveryLocation = null;
-
-const locationGate = document.getElementById("locationGate");
-const enableLocationBtn = document.getElementById("enableLocationBtn");
-
-// Show gate immediately
-locationGate.style.display = "flex";
-
-// 🔥 MUST be triggered by a click
-enableLocationBtn.onclick = () => {
-  if (!navigator.geolocation) {
-    alert("Geolocation not supported");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      deliveryLocation = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-      };
-
-      console.log("Location set:", deliveryLocation);
-
-      // Unlock site
-      locationGate.style.display = "none";
-    },
-    () => {
-      alert("Location permission is required to place orders.");
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 10000,
-    }
-  );
-};
-
 
 
 
