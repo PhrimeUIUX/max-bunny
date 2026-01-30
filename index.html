@@ -2,126 +2,310 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web Kiosk</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <style>
+      :root {
+        --bg-gradient: #f8fafc;
 
-    <link rel="stylesheet" href="style/menu.css" />
+        --glass-bg: rgba(255, 255, 255, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --glass: rgba(255, 255, 255, 0.18);
 
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        --text-main: #1f2937;
+        --text-muted: #6b7280;
+
+        --accent: #f97316;
+        --accent-soft: #fb923c;
+
+        --danger: #ef4444;
+        --radius: 22px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #ffffff, var(--bg-gradient));
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1100px;
+        padding: 32px;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 48px;
+        align-items: center;
+      }
+
+      /* LEFT — COPY */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .badge {
+        display: inline-block;
+        background: var(--search-background);
+        color: var(--accent);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        width: fit-content;
+      }
+
+      h1 {
+        font-size: clamp(36px, 4vw, 52px);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+
+      p {
+        font-size: 17px;
+        color: var(--text-muted);
+        max-width: 520px;
+      }
+
+      .cta {
+        margin-top: 16px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+
+      .cta a {
+        text-decoration: none;
+        padding: 14px 22px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+        color: white;
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: 0 10px 25px rgba(249, 115, 22, 0.25);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .cta a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(249, 115, 22, 0.35);
+      }
+
+      .cta span {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+
+      /* RIGHT — TENANT CARD */
+      .tenant-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .tenant-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .tenant-logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden; /* 👈 CRITICAL */
+        flex-shrink: 0;
+      }
+
+      .tenant-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* 👈 keeps logo ratio */
+        border-radius: 16px;
+        background: white; /* logo safety */
+      }
+
+      .tenant-info h3 {
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+
+      .tenant-info p {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+
+      .tenant-actions {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .tenant-actions a {
+        text-decoration: none;
+        padding: 12px 20px;
+        border-radius: 999px;
+        background: var(--text-main);
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.2s ease;
+      }
+
+      .tenant-actions a:hover {
+        background: #000;
+      }
+
+      .tenant-status {
+        font-size: 13px;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 18px;
+        width: 100%;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      @media (max-width: 900px) {
+        .container {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+
+        .hero p {
+          margin: 0 auto;
+        }
+
+        .cta {
+          justify-content: center;
+          flex-direction: column;
+        }
+      }
+    </style>
   </head>
 
   <body>
-    
+    <main class="container">
+      <!-- LEFT -->
+      <section class="hero">
+        <span class="badge">Web Kiosk</span>
+        <h1>Order smarter.<br />Skip the lines.</h1>
+        <p>
+          A modern self-service ordering experience designed for speed, clarity,
+          and convenience. Browse menus, place orders, and send instantly.
+        </p>
 
-
-    <!-- HEADER -->
-    <header class="header">
-      <div class="header-inner">
-        <img id="brandLogo" src="" alt="Brand Logo" class="logo" />
-
-        <div class="brand">
-          <h1 id="brandName">Loading…</h1>
-          <p id="brandSlogan"></p>
+        <div class="cta">
+          <a href="/Max&Bunny">Start Ordering</a>
+          <span>No app required</span>
         </div>
+      </section>
 
-        <!-- FILTER BAR -->
-        <div style="margin-left: auto" class="menu-filters">
-          <div class="search-wrap">
-            <input
-              type="search"
-              id="searchInput"
-              placeholder="Search menu…"
-              aria-label="Search menu"
-            />
-            <button id="clearSearch" aria-label="Clear search">×</button>
+      <!-- RIGHT -->
+      <section class="tenant-card">
+        <div class="tenant-header">
+          <div class="tenant-logo">
+            <img id="brandLogo" alt="Max & Bunny logo" />
           </div>
 
-          <select id="priceFilter" aria-label="Sort by price">
-            <option value="">Sort by</option>
-            <option value="low-high">Price: Low → High</option>
-            <option value="high-low">Price: High → Low</option>
-          </select>
+          <div class="tenant-info">
+            <h3 id="brandName">Max & Bunny</h3>
+            <p id="brandSlogan">Freshly made. Crafted with care.</p>
+          </div>
         </div>
-      </div>
-    </header>
 
-    <!-- CONTENT -->
-    <main class="container">
-      <div id="menu" class="menu-grid"></div>
-      <div id="state" class="loading">Loading menu…</div>
+        <p>
+          Explore the full Max & Bunny menu and place your order directly
+          through our Web Kiosk — fast, simple, and contactless.
+        </p>
+
+        <div class="tenant-actions">
+          <span class="tenant-status">Now accepting orders</span>
+          <a href="/Max&Bunny">View Menu</a>
+        </div>
+      </section>
     </main>
 
-    <!-- MODAL -->
-    <div id="modalOverlay" class="modal-overlay">
-      <div class="modal">
-        <button class="close-btn" id="closeModal">×</button>
-        <img id="modalImg" />
+    <footer>© 2026 Web Kiosk • Powered for modern ordering</footer>
 
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3 id="modalTitle"></h3>
-            <span class="modal-price" id="modalPrice"></span>
-          </div>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-          <div class="modal-desc" id="modalDesc"></div>
+      const SUPABASE_URL = "https://prteyzbjjzkfyogphwrg.supabase.co";
 
-          <!-- ACTIONS -->
-          <div class="card-actions modal-actions">
-            <button id="modalAddCart" class="add-cart">Add to Cart</button>
-            <button id="modalOrderNow" class="order-now">Order Now</button>
-          </div>
-        </div>
-      </div>
-    </div>
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBydGV5emJqanprZnlvZ3Bod3JnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0ODI0MTYsImV4cCI6MjA4NTA1ODQxNn0.VWJS8IcAhXSucmgQiOw9fpl79apwCYOmTdaC31_Invw";
 
-    <!-- FLOATING CART BUTTON -->
-    <button id="cartBtn" class="cart-fab">
-      🛒
-      <span id="cartCount">0</span>
-    </button>
+      const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    <div id="cartOverlay" class="cart-overlay"></div>
+      // menu_settings.id
+      const BRANDING_ID = "11327357-0269-422d-ae06-3f3835868e85";
 
-    <!-- CART DRAWER -->
-    <div id="cartDrawer" class="cart-drawer">
-      <div class="cart-header">
-        <h3>Your Order</h3>
-        <button id="closeCart">×</button>
-      </div>
+      const logoEl = document.getElementById("brandLogo");
+      const nameEl = document.getElementById("brandName");
+      const sloganEl = document.getElementById("brandSlogan");
 
-      <div id="cartItems" class="cart-items"></div>
+      async function loadBranding() {
+        const { data, error } = await supabase
+          .from("menu_settings")
+          .select("brand, slogan, logo_url")
+          .eq("id", BRANDING_ID)
+          .single();
 
-      <div class="cart-footer">
-        <div class="cart-total">
-          Total: <strong>₱<span id="cartTotal">0</span></strong>
-        </div>
+        if (error || !data) {
+          console.error("Branding load failed:", error);
+          nameEl.textContent = "Menu";
+          sloganEl.textContent = "";
+          return;
+        }
 
-        <div id="locationStep" style="display: none; margin-top: 16px">
-          <p style="font-weight: 600">📍 Confirm delivery location</p>
+        // Brand text
+        nameEl.textContent = data.brand || "Menu";
+        sloganEl.textContent = data.slogan || "";
 
-          <div id="mapWrapper">
-            <div id="map"></div>
-            <div class="center-pin"></div>
-          </div>
-        </div>
+        // Logo
+        if (data.logo_url && logoEl) {
+          logoEl.src = `${data.logo_url}?v=${Date.now()}`;
+          logoEl.alt = data.brand || "Brand Logo";
+        }
+      }
 
-        <button id="checkoutBtn" class="checkout-btn">Send Order</button>
-      </div>
-    </div>
-
-    <script type="module" src="./script/public/main.js"></script>
-    <!-- <script type="module" src="./script/public/geolocation.js"></script> -->
+      loadBranding();
+    </script>
   </body>
 </html>

@@ -3,6 +3,10 @@
     {
       "source": "/admin",
       "destination": "/admin.html"
+    },
+    {
+      "source": "/maxandunny",
+      "destination": "/Max&Bunny.html"
     }
   ]
 }

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Web Kiosk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style/menu.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </head>
+
+  <body>
+    
+
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-inner">
+        <img id="brandLogo" src="" alt="Brand Logo" class="logo" />
+
+        <div class="brand">
+          <h1 id="brandName">Loading…</h1>
+          <p id="brandSlogan"></p>
+        </div>
+
+        <!-- FILTER BAR -->
+        <div style="margin-left: auto" class="menu-filters">
+          <div class="search-wrap">
+            <input
+              type="search"
+              id="searchInput"
+              placeholder="Search menu…"
+              aria-label="Search menu"
+            />
+            <button id="clearSearch" aria-label="Clear search">×</button>
+          </div>
+
+          <select id="priceFilter" aria-label="Sort by price">
+            <option value="">Sort by</option>
+            <option value="low-high">Price: Low → High</option>
+            <option value="high-low">Price: High → Low</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="container">
+      <div id="menu" class="menu-grid"></div>
+      <div id="state" class="loading">Loading menu…</div>
+    </main>
+
+    <!-- MODAL -->
+    <div id="modalOverlay" class="modal-overlay">
+      <div class="modal">
+        <button class="close-btn" id="closeModal">×</button>
+        <img id="modalImg" />
+
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="modalTitle"></h3>
+            <span class="modal-price" id="modalPrice"></span>
+          </div>
+
+          <div class="modal-desc" id="modalDesc"></div>
+
+          <!-- ACTIONS -->
+          <div class="card-actions modal-actions">
+            <button id="modalAddCart" class="add-cart">Add to Cart</button>
+            <button id="modalOrderNow" class="order-now">Order Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING CART BUTTON -->
+    <button id="cartBtn" class="cart-fab">
+      🛒
+      <span id="cartCount">0</span>
+    </button>
+
+    <div id="cartOverlay" class="cart-overlay"></div>
+
+    <!-- CART DRAWER -->
+    <div id="cartDrawer" class="cart-drawer">
+      <div class="cart-header">
+        <h3>Your Order</h3>
+        <button id="closeCart">×</button>
+      </div>
+
+      <div id="cartItems" class="cart-items"></div>
+
+      <div class="cart-footer">
+        <div class="cart-total">
+          Total: <strong>₱<span id="cartTotal">0</span></strong>
+        </div>
+
+        <div id="locationStep" style="display: none; margin-top: 16px">
+          <p style="font-weight: 600">📍 Confirm delivery location</p>
+
+          <div id="mapWrapper">
+            <div id="map"></div>
+            <div class="center-pin"></div>
+          </div>
+        </div>
+
+        <button id="checkoutBtn" class="checkout-btn">Send Order</button>
+      </div>
+    </div>
+
+    <script type="module" src="./script/public/main.js"></script>
+    <!-- <script type="module" src="./script/public/geolocation.js"></script> -->
+  </body>
+</html>
