@@ -1,0 +1,21 @@
+{
+  "name": "Max & Bunny",
+  "short_name": "M&B",
+  "icons": [
+    {
+      "src": "/assets/favicon/maxandbunny/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/favicon/maxandbunny/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#ff9c01",
+  "background_color": "#ff9c01",
+  "display": "standalone"
+}
