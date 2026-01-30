@@ -5,8 +5,8 @@
       "destination": "/admin.html"
     },
     {
-      "source": "/maxandunny",
-      "destination": "/Max&Bunny.html"
+      "source": "/Max&Bunny",
+      "destination": "/maxandbunny.html"
     }
   ]
 }
