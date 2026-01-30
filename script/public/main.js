@@ -51,6 +51,16 @@ const cartOverlay = document.getElementById("cartOverlay");
 const modalAddCart = document.getElementById("modalAddCart");
 const modalOrderNow = document.getElementById("modalOrderNow");
 
+// 🔒 Prevent modal overlay from hijacking button clicks (iOS fix)
+modalAddCart.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+modalOrderNow.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+
 /* ==============================
    STATE
 ============================== */
@@ -299,10 +309,25 @@ modalAddCart.onclick = () => {
   cartDrawer.classList.add("active");
 };
 
-modalOrderNow.onclick = () => {
+modalOrderNow.onclick = (e) => {
+  e.stopPropagation();
   if (!activeItem) return;
-  openMessenger([{ ...activeItem, qty: 1 }]);
+
+  // Add item
+  addToCart(activeItem);
+
+  // Close modal FIRST
+  modalOverlay.classList.remove("active");
+
+  // Open cart (Safari-safe)
+  requestAnimationFrame(() => {
+    cartDrawer.classList.add("active");
+    cartOverlay.classList.add("active");
+    document.body.classList.add("cart-open");
+  });
 };
+
+
 
 function addToCart(item) {
   const existing = cart.find((i) => i.id === item.id);
