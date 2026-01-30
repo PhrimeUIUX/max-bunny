@@ -59,7 +59,7 @@
       <!-- ADMIN -->
       <div id="adminBox" style="display: none">
         <div class="card">
-          <div class="card">
+          
             <h2>Branding</h2>
 
             <div class="row row-2">
@@ -72,19 +72,19 @@
             <div class="row">
               <input id="logoInput" type="file" accept="image/*" />
               <img
-  id="logoPreview"
-  style="
-    display:none;
-    margin-top:10px;
-    width:80px;
-    height:80px;
-    border-radius:1000px;
-    object-fit:cover;
-  "
-/>
+                id="logoPreview"
+                style="
+                  display: none;
+                  margin-top: 10px;
+                  width: 80px;
+                  height: 80px;
+                  border-radius: 1000px;
+                  object-fit: cover;
+                "
+              />
 
               <button id="saveBrandingBtn">Save Branding</button>
-            </div>
+            
           </div>
 
           <h2>Add Menu Item</h2>
@@ -168,21 +168,17 @@
 
       const BRANDING_ID = "11327357-0269-422d-ae06-3f3835868e85";
 
-
       let editingItemId = null;
 
       let statusTimeout;
 
       const logoPreview = document.getElementById("logoPreview");
 
-logoInput.onchange = () => {
-  if (!logoInput.files[0]) return;
-  logoPreview.src = URL.createObjectURL(logoInput.files[0]);
-  logoPreview.style.display = "block";
-};
-
-
-
+      logoInput.onchange = () => {
+        if (!logoInput.files[0]) return;
+        logoPreview.src = URL.createObjectURL(logoInput.files[0]);
+        logoPreview.style.display = "block";
+      };
 
       async function loadBranding() {
         const { data, error } = await supabase
@@ -207,82 +203,75 @@ logoInput.onchange = () => {
         }
       }
 
-      
-
       saveBrandingBtn.onclick = async () => {
-  try {
-    saveBrandingBtn.disabled = true;
-    showStatus("Saving branding…");
+        try {
+          saveBrandingBtn.disabled = true;
+          showStatus("Saving branding…");
 
-    // 1️⃣ Load existing branding (to get old logo path)
-    const { data: existing, error: fetchErr } = await supabase
-      .from("menu_settings")
-      .select("logo_path")
-      .eq("id", BRANDING_ID)
-      .single();
+          // 1️⃣ Load existing branding (to get old logo path)
+          const { data: existing, error: fetchErr } = await supabase
+            .from("menu_settings")
+            .select("logo_path")
+            .eq("id", BRANDING_ID)
+            .single();
 
-    if (fetchErr) throw fetchErr;
+          if (fetchErr) throw fetchErr;
 
-    let logo_path = existing.logo_path || null;
-    let logo_url = null;
+          let logo_path = existing.logo_path || null;
+          let logo_url = null;
 
-    // 2️⃣ If uploading a new logo
-    if (logoInput.files[0]) {
-      const file = logoInput.files[0];
+          // 2️⃣ If uploading a new logo
+          if (logoInput.files[0]) {
+            const file = logoInput.files[0];
 
-      // 🔥 Delete old logo FIRST
-      if (logo_path) {
-        await supabase.storage
-          .from("menu-images")
-          .remove([logo_path]);
-      }
+            // 🔥 Delete old logo FIRST
+            if (logo_path) {
+              await supabase.storage.from("menu-images").remove([logo_path]);
+            }
 
-      // 🔒 Unique filename (prevents cache hell)
-      logo_path = `logo/brand-${Date.now()}.jpg`;
+            // 🔒 Unique filename (prevents cache hell)
+            logo_path = `logo/brand-${Date.now()}.jpg`;
 
-      const upload = await supabase.storage
-        .from("menu-images")
-        .upload(logo_path, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+            const upload = await supabase.storage
+              .from("menu-images")
+              .upload(logo_path, file, {
+                contentType: file.type,
+                upsert: false,
+              });
 
-      if (upload.error) throw upload.error;
+            if (upload.error) throw upload.error;
 
-      const { data: pub } = supabase.storage
-        .from("menu-images")
-        .getPublicUrl(logo_path);
+            const { data: pub } = supabase.storage
+              .from("menu-images")
+              .getPublicUrl(logo_path);
 
-      logo_url = pub.publicUrl;
-    }
+            logo_url = pub.publicUrl;
+          }
 
-    // 3️⃣ Update DB
-    const { error } = await supabase
-      .from("menu_settings")
-      .update({
-        brand: brandInput.value.trim(),
-        slogan: sloganInput.value.trim(),
-        ...(logo_path && logo_url
-          ? { logo_path, logo_url }
-          : {}),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", BRANDING_ID);
+          // 3️⃣ Update DB
+          const { error } = await supabase
+            .from("menu_settings")
+            .update({
+              brand: brandInput.value.trim(),
+              slogan: sloganInput.value.trim(),
+              ...(logo_path && logo_url ? { logo_path, logo_url } : {}),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", BRANDING_ID);
 
-    if (error) throw error;
+          if (error) throw error;
 
-    showStatus("Branding updated successfully");
-    logoInput.value = "";
-    logoPreview.style.display = "none";
-    loadBranding();
-  } catch (err) {
-    console.error(err);
-    showStatus("Failed to save branding", false);
-  } finally {
-    saveBrandingBtn.disabled = false;
-  }
-};
-
+          showStatus("Branding updated successfully");
+          logoInput.value = "";
+          logoPreview.style.display = "none";
+          loadBranding();
+        } catch (err) {
+          console.error(err);
+          showStatus("Failed to save branding", false);
+        } finally {
+          saveBrandingBtn.disabled = false;
+        }
+      };
 
       function showStatus(msg, ok = true, duration = 3000) {
         if (statusTimeout) clearTimeout(statusTimeout);
