@@ -411,7 +411,7 @@ function renderCart() {
 
 
 
-function openMessenger(items) {
+async function openMessenger(items) {
   if (!items || !items.length) return;
 
   if (!selectedLat || !selectedLng) {
@@ -419,9 +419,9 @@ function openMessenger(items) {
     return;
   }
 
-  // ==============================
-  // BUILD MESSAGE (Messenger-safe)
-  // ==============================
+  /* ==============================
+     BUILD MESSAGE
+  ============================== */
 
   let message = `ORDER SUMMARY\n`;
   message += `----------------------\n`;
@@ -443,32 +443,41 @@ function openMessenger(items) {
   message += `Sent via Web Kiosk`;
 
   const encoded = encodeURIComponent(message);
-
   const page = "Phrimeuniverse";
 
-  // ==============================
-  // PLATFORM DETECTION
-  // ==============================
+  /* ==============================
+     COPY TO CLIPBOARD (GUARANTEE)
+  ============================== */
 
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-
-  let url = "";
-
-  if (isAndroid) {
-    // ✅ ANDROID — Messenger Intent (MOST IMPORTANT FIX)
-    url = `intent://send/${encoded}#Intent;scheme=fb-messenger;package=com.facebook.orca;end`;
-  } else {
-    // ✅ DESKTOP + iOS SAFEST
-    url = `https://www.messenger.com/t/${page}?text=${encoded}`;
+  try {
+    await navigator.clipboard.writeText(message);
+  } catch (err) {
+    console.warn("Clipboard copy failed", err);
   }
 
-  // ==============================
-  // SAFE NAVIGATION (NO POPUP)
-  // ==============================
+  /* ==============================
+     PLATFORM-SAFE OPEN
+  ============================== */
+
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  let url = isAndroid
+    // Android: open Messenger app (text may or may not prefill)
+    ? `intent://send/${encoded}#Intent;scheme=fb-messenger;package=com.facebook.orca;end`
+    // Desktop / iOS
+    : `https://www.messenger.com/t/${page}?text=${encoded}`;
 
   window.location.href = url;
+
+  /* ==============================
+     SOFT UX HINT (NON-BLOCKING)
+  ============================== */
+
+  setTimeout(() => {
+    showMessengerHint();
+  }, 600);
 }
+
 
 
 
