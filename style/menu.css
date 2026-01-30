@@ -39,6 +39,111 @@ body.cart-open .cart-fab {
   transform: scale(0.9);
 }
 
+.location-gate {
+  position: fixed;
+  inset: 0;
+
+  background: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.6),
+    rgba(248, 250, 252, 0.85)
+  );
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  z-index: 9999;
+}
+
+.location-box {
+  width: min(92%, 380px);
+  padding: 28px 26px;
+
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+
+  text-align: center;
+
+  animation: gateIn 0.35s ease;
+}
+
+.location-box h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.location-box p {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+#enableLocationBtn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+
+  padding: 12px 22px;
+  font-size: 0.95rem;
+  font-weight: 500;
+
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--accent),
+    var(--accent-soft)
+  );
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 22px rgba(249, 115, 22, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+#enableLocationBtn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 28px rgba(249, 115, 22, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+#enableLocationBtn:active {
+  transform: translateY(0);
+  box-shadow:
+    0 6px 14px rgba(249, 115, 22, 0.35),
+    inset 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes gateIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+
 /* ==============================
    CART OVERLAY
 ============================== */
