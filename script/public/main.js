@@ -443,7 +443,7 @@ async function openMessenger(items) {
   } catch {}
 
   // ALWAYS WORKS
-  window.location.href = "https://m.me/Phrimeuniverse";
+  window.location.href = "https://m.me/maxandbunnyrestaurant";
 
   // UX hint
   setTimeout(showMessengerHint, 600);
